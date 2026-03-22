@@ -154,7 +154,7 @@ class ITALKApp {
                 item.innerHTML = `<h4>${cls.name}</h4><p>Code: ${cls.code}</p>`;
                 container.appendChild(item);
             });
-            
+
             // Hardcoded subjects for common platform access
             const subjectsList = [
                 { id: 1, name: 'Data Structures' },
@@ -180,7 +180,7 @@ class ITALKApp {
                 { id: 4, name: 'Software Engineering' },
                 { id: 5, name: 'Database Systems' }
             ];
-            
+
             const title = document.createElement('h3');
             title.innerText = "Current Academic Subjects";
             title.style.margin = "1rem 0";
@@ -203,7 +203,7 @@ class ITALKApp {
                     { id: 6, name: 'Microprocessors', grade: 'A' },
                     { id: 7, name: 'Mathematics III', grade: 'B+' }
                 ];
-                
+
                 // Keep the drawer open, just clear and show past subjects
                 container.innerHTML = '<h3 style="margin: 1rem 0;">Previous Semester</h3>';
                 lastSubjs.forEach(s => {
@@ -249,7 +249,7 @@ class ITALKApp {
                     item.style.display = 'flex';
                     item.style.justifyContent = 'space-between';
                     item.style.alignItems = 'center';
-                    
+
                     let html = `<div><strong style="display:block; margin-bottom: 5px;">${m.title}</strong><a href="${m.file_url}" target="_blank" style="color: #4da6ff; text-decoration: none;"><i class="fas fa-external-link-alt"></i> View Material</a></div>`;
                     if (this.user.role === 'professor') {
                         html += `<button class="btn-primary" style="background: #e74c3c; padding: 5px 10px; width: auto;" onclick="app.deleteMaterial(${m.id}, ${subjectId})"><i class="fas fa-trash"></i></button>`;
@@ -311,11 +311,11 @@ class ITALKApp {
         }
 
         if (!this.messages[id]) this.messages[id] = [];
-        this.messages[id].push({ 
-            id: msg.id, 
-            text: msg.message_text, 
-            type: msg.sender_id == this.user.id ? 'sent' : 'received', 
-            broadcast: msg.message_type === 'broadcast' 
+        this.messages[id].push({
+            id: msg.id,
+            text: msg.message_text,
+            type: msg.sender_id == this.user.id ? 'sent' : 'received',
+            broadcast: msg.message_type === 'broadcast'
         });
 
         if (this.activeChatId == id) {
@@ -331,11 +331,11 @@ class ITALKApp {
             }
             // Move to top of queue (WhatsApp style)
             this.chats.splice(chatIndex, 1);
-            
+
             // If it's the global hub, we might want it to stay at index 0, or just let everything flow naturally. Let's just put the most recent chat immediately after index 0 if index 0 is global hub, or just unshift if global hub isn't strictly pinned.
             // Let's just unshift it naturally so the most recent is at the absolute top.
             this.chats.unshift(chat);
-            
+
             this.renderChatList();
         }
     }

@@ -14,18 +14,25 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// MySQL connection
-const db = mysql.createConnection({
+// MySQL connection pool
+const db = mysql.createPool({
     host: process.env.DB_HOST || "localhost",
     user: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD || "sak1162",
     database: process.env.DB_NAME || "italk_db",
-    port: process.env.DB_PORT || 3306
+    port: process.env.DB_PORT || 3306,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
-db.connect((err) => {
+// Test connection
+db.getConnection((err, connection) => {
     if (err) console.log("Database connection failed:", err);
-    else console.log("MySQL Connected to italk_db");
+    else {
+        console.log("MySQL Connected to italk_db via Pool");
+        connection.release();
+    }
 });
 
 // --- Auth APIs ---
