@@ -16,11 +16,11 @@ app.use(express.json());
 
 // MySQL connection
 const db = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "sak1162",
-    database: "italk_db",
-    port: 3306
+    host: process.env.DB_HOST || "localhost",
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "sak1162",
+    database: process.env.DB_NAME || "italk_db",
+    port: process.env.DB_PORT || 3306
 });
 
 db.connect((err) => {
@@ -175,5 +175,7 @@ io.on("connection", (socket) => {
     });
 });
 
-const PORT = 5000;
-server.listen(PORT, () => console.log(`ITALK Server on ${PORT}`));
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
