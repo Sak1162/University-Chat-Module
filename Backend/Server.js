@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2");
@@ -9,7 +10,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "*", // Adjust for production
+        origin: "*", // You may want to restrict this to your frontend URL in production
         methods: ["GET", "POST"]
     }
 });
@@ -17,20 +18,21 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// MySQL connection (Using italk_db as per schema.sql)
+// MySQL connection using Environment Variables (.env) for Cloud Deployment
+// Fallbacks to localhost provided for local development testing
 const db = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "sak1162",
-    database: "italk_db",
-    port: 3306
+    host: process.env.DB_HOST || "localhost",
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "sak1162",
+    database: process.env.DB_NAME || "italk_db",
+    port: process.env.DB_PORT || 3306
 });
 
 db.connect((err) => {
     if (err) {
         console.log("Database connection failed:", err);
     } else {
-        console.log("MySQL Connected to italk_db");
+        console.log("MySQL Connected to:", process.env.DB_NAME || "italk_db");
     }
 });
 
