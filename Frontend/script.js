@@ -3,7 +3,7 @@
  * Academic & Placement Integration Phase
  */
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://university-chat-module.onrender.com";
 
 // --- Socket Service ---
 class SocketService {
