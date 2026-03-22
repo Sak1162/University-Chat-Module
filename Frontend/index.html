@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITALK - University Portal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="floating-dots"></div>
+    <div class="bg-graphic"></div>
+    <!-- Background Animated Blobs -->
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="auth-container">
+        <!-- Login Form -->
+        <div id="login-form" class="auth-form active">
+            <div class="form-header">
+                <div class="logo-box" style="margin-bottom: 1.5rem;">
+                    <img src="file:///C:/Users/parte/.gemini/antigravity/brain/c68c0256-afd6-4dd7-8005-2950d83b9ecb/media__1774020064129.png"
+                        alt="ITALK Logo" class="logo-img">
+                    <h1 style="margin-bottom: 0;">ITALK</h1>
+                </div>
+                <p>Login to University Student Portal</p>
+            </div>
+
+            <form id="login-form-element">
+                <div class="form-group">
+                    <label for="login-prn">University PRN</label>
+                    <input type="text" id="login-prn" placeholder="Enter your PRN" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn-primary">Sign In</button>
+            </form>
+
+            <div class="toggle-form">
+                Not registered? <span id="to-signup">Create an account</span>
+            </div>
+        </div>
+
+        <!-- Signup Form -->
+        <div id="signup-form" class="auth-form">
+            <div class="form-header">
+                <h1>Register</h1>
+                <p>Join the University Community</p>
+            </div>
+
+            <form id="signup-form-element">
+                <div class="form-group">
+                    <label for="signup-name">Full Name</label>
+                    <input type="text" id="signup-name" placeholder="John Doe" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="signup-prn">University PRN</label>
+                    <input type="text" id="signup-prn" placeholder="Unique PRN" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Your Role</label>
+                    <div class="role-selector">
+                        <label class="role-option">
+                            <input type="radio" name="role" value="student" checked>
+                            <div class="role-card">Student</div>
+                        </label>
+                        <label class="role-option">
+                            <input type="radio" name="role" value="professor">
+                            <div class="role-card">Professor</div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="signup-password">Create Password</label>
+                    <input type="password" id="signup-password" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn-primary">Sign Up</button>
+            </form>
+
+            <div class="toggle-form">
+                Already have an account? <span id="to-login">Sign In</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

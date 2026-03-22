@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITALK - BVDU University</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body class="app-body">
+    <div class="floating-dots"></div>
+    <div class="bg-graphic"></div>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-box">
+                    <img src="file:///C:/Users/parte/.gemini/antigravity/brain/c68c0256-afd6-4dd7-8005-2950d83b9ecb/media__1774020064129.png"
+                        alt="Logo" class="logo-img">
+                    <span class="logo-text">ITALK</span>
+                </div>
+                <div class="header-actions">
+                    <div class="profile-corner" id="profile-trigger">
+                        <!-- Add Profile Picture Here Manually -->
+                        <div class="profile-pic-placeholder" id="sidebar-profile-pic">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <span class="notification-badge">3</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <div class="search-input">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="chat-search" placeholder="Filter chats...">
+                </div>
+                <div class="hamburger-menu" id="menu-trigger">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </div>
+
+            <div class="chat-list" id="chat-list">
+                <!-- Chat Items will be injected here -->
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="footer-row">
+                    <button class="footer-btn" id="join-class-btn" title="Join Class">
+                        <i class="fas fa-plus-circle"></i>
+                    </button>
+                    <button class="footer-btn" id="univ-chat-btn" title="Univ Chat">
+                        <i class="fas fa-university"></i>
+                    </button>
+                    <button class="footer-btn" id="status-btn" title="Status">
+                        <i class="fas fa-circle-notch"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Sliding Drawer (Academic Classes) -->
+        <div id="side-drawer" class="side-drawer">
+            <div class="drawer-header">
+                <h3>Academic Classes</h3>
+                <span id="close-drawer">&times;</span>
+            </div>
+            <div class="drawer-content">
+                <div class="academic-year">
+                    <span>Year: 2024-25</span>
+                </div>
+                <div class="class-list" id="drawer-class-list">
+                    <!-- Classes will be injected here -->
+                </div>
+                <div class="drawer-actions">
+                    <button class="btn-placement" id="open-placement-btn">
+                        <i class="fas fa-briefcase"></i>
+                        <span>Placement Form</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Chat Window -->
+        <main class="chat-window" id="chat-window">
+            <div class="empty-state">
+                <i class="fas fa-comments"></i>
+                <h2>Select a chat to start messaging</h2>
+                <p>Welcome to ITALK BVDU Portal</p>
+            </div>
+
+            <!-- Active Chat View (Initially Hidden) -->
+            <div class="active-chat" style="display: none;">
+                <div class="chat-header">
+                    <div class="chat-info">
+                        <div class="chat-avatar"></div>
+                        <div class="chat-meta">
+                            <h3 id="active-chat-name">Professor Sharma</h3>
+                            <span id="active-chat-status">Online</span>
+                        </div>
+                    </div>
+                    <div class="chat-actions">
+                        <i class="fas fa-phone"></i>
+                        <i class="fas fa-video"></i>
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                </div>
+
+                <div class="messages-container" id="messages-container">
+                    <!-- Messages will be injected here -->
+                </div>
+
+                <div class="chat-input-area">
+                    <div class="input-wrapper">
+                        <i class="far fa-smile"></i>
+                        <input type="text" id="msg-input" placeholder="Type a message...">
+                        <i class="fas fa-paperclip"></i>
+                    </div>
+                    <button id="send-btn" class="send-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                    <!-- Professor Specific: Broadcast Button -->
+                    <button id="broadcast-btn" class="broadcast-btn" title="Broadcast to all students">
+                        <i class="fas fa-bullhorn"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="logo-box">
+                    <img src="file:///C:/Users/parte/.gemini/antigravity/brain/c68c0256-afd6-4dd7-8005-2950d83b9ecb/media__1774020064129.png"
+                        alt="Logo" class="logo-img">
+                    <h2>User Profile</h2>
+                </div>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="profile-view">
+                <div class="profile-pic-section">
+                    <div class="big-profile-pic" id="profile-pic-display">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <input type="file" id="profile-pic-input" accept="image/*" style="display: none;">
+                    <button class="edit-pic-btn" onclick="document.getElementById('profile-pic-input').click()">
+                        <i class="fas fa-camera"></i> Change Picture
+                    </button>
+                </div>
+
+                <div class="profile-info-grid">
+                    <div class="info-item">
+                        <label>Course</label>
+                        <p id="p-course">B.Tech - Computer Science</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Year</label>
+                        <p id="p-year">3rd Year</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Class Incharge</label>
+                        <p id="p-incharge">Prof. R. Deshmukh</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Class Code</label>
+                        <p id="p-code">CS-B3-2024</p>
+                    </div>
+                </div>
+
+                <div class="editable-section">
+                    <div class="form-group">
+                        <label>Contact Number</label>
+                        <input type="text" id="p-contact" value="+91 9876543210">
+                    </div>
+                    <div class="form-group">
+                        <label>Gmail ID</label>
+                        <input type="email" id="p-email" value="student@bvdu.edu.in">
+                    </div>
+                    <button class="btn-primary" id="save-profile">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enrollment/Placement Modal -->
+    <div id="placement-modal" class="modal">
+        <div class="modal-content placement-card">
+            <div class="modal-header">
+                <h2>Placement Registration</h2>
+                <span class="close-modal" id="close-placement">&times;</span>
+            </div>
+            <form id="placement-form-element" class="placement-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Preferred Domain</label>
+                        <select required>
+                            <option value="">Select Domain</option>
+                            <option value="sde">Software Development</option>
+                            <option value="ds">Data Science</option>
+                            <option value="uiux">UI/UX Design</option>
+                            <option value="cyber">Cyber Security</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Current CGPA</label>
+                        <input type="number" step="0.1" placeholder="e.g. 9.5" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Skills (Comma separated)</label>
+                    <input type="text" placeholder="React, Python, Node.js" required>
+                </div>
+                <div class="form-group">
+                    <label>Resume Link (Google Drive/GitHub)</label>
+                    <input type="url" placeholder="https://..." required>
+                </div>
+                <div class="form-group">
+                    <label>LinkedIn Profile</label>
+                    <input type="url" placeholder="https://linkedin.com/in/..." required>
+                </div>
+                <button type="submit" class="btn-placement-submit">Submit Application</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

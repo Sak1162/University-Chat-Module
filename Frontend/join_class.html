@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Class - ITALK (BVDU)</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .join-card {
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .scanner-placeholder {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #000;
+            border-radius: 20px;
+            margin: 2rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid var(--primary-light);
+        }
+
+        #video-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .scan-overlay {
+            position: absolute;
+            width: 70%;
+            height: 70%;
+            border: 2px solid var(--primary-light);
+            box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 15%;
+            left: 15%;
+            width: 70%;
+            height: 2px;
+            background: var(--primary-light);
+            box-shadow: 0 0 15px var(--primary-light);
+            animation: scan 2s infinite ease-in-out;
+        }
+
+        @keyframes scan {
+
+            0%,
+            100% {
+                top: 15%;
+            }
+
+            50% {
+                top: 85%;
+            }
+        }
+
+        .method-divider {
+            margin: 1.5rem 0;
+            display: flex;
+            align-items: center;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .method-divider::before,
+        .method-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--glass-border);
+            margin: 0 1rem;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 2rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: var(--transition-fast);
+        }
+
+        .back-link:hover {
+            color: var(--primary-light);
+        }
+    </style>
+</head>
+
+<body class="app-body">
+    <div class="floating-dots"></div>
+    <div class="bg-graphic"></div>
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="auth-container join-card">
+        <div class="form-header">
+            <div class="logo-box" style="margin-bottom: 2rem;">
+                <img src="file:///C:/Users/parte/.gemini/antigravity/brain/c68c0256-afd6-4dd7-8005-2950d83b9ecb/media__1774020064129.png"
+                    alt="ITALK Logo" class="logo-img">
+                <h1 style="margin-bottom: 0;">ITALK</h1>
+            </div>
+            <p>Scan the Professor's QR code or enter a code manually.</p>
+        </div>
+
+        <div class="scanner-placeholder" id="scanner-container">
+            <video id="video-preview" autoplay playsinline></video>
+            <div class="scan-overlay"></div>
+            <div class="scan-line"></div>
+            <div id="camera-error" style="display:none; padding: 2rem;">
+                <i class="fas fa-camera-slash" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p>Camera access denied or mapping failed.</p>
+            </div>
+        </div>
+
+        <div class="method-divider">OR ENTER CODE</div>
+
+        <div class="form-group">
+            <input type="text" id="class-code" placeholder="Enter Class Code (e.g., CS-301)"
+                style="text-align: center; font-weight: 700; letter-spacing: 2px;">
+        </div>
+
+        <button class="btn-primary" id="join-btn">Join Now</button>
+
+        <a href="home.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Chats</a>
+    </div>
+
+    <script>
+        // Mock Camera Logic
+        async function initCamera() {
+            const video = document.getElementById('video-preview');
+            const errorDiv = document.getElementById('camera-error');
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("Camera Error:", err);
+                video.style.display = 'none';
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        document.getElementById('join-btn').onclick = () => {
+            const code = document.getElementById('class-code').value.trim();
+            if (code) {
+                alert(`Successfully joined class: ${code}`);
+                window.location.href = 'home.html';
+            } else {
+                alert('Please enter a valid class code or scan a QR code.');
+            }
+        };
+
+        window.onload = initCamera;
+    </script>
+</body>
+
+</html>

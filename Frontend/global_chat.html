@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Uni Chat - ITALK (BVDU)</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .global-header {
+            padding: 1.5rem 2rem;
+            background: rgba(147, 51, 234, 0.1);
+            border-bottom: 2px solid var(--secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .global-info h2 {
+            color: var(--secondary);
+            font-size: 1.4rem;
+        }
+
+        .global-info p {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .broadcast-restricted {
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .msg-admin {
+            align-self: center;
+            max-width: 90%;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(37, 99, 235, 0.2));
+            border: 1px solid var(--secondary);
+            border-radius: 20px;
+            padding: 1rem 2rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .msg-admin strong {
+            color: var(--secondary);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .branch-tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+
+<body class="app-body">
+    <div class="floating-dots"></div>
+    <div class="bg-graphic"></div>
+    <div class="app-container">
+        <main class="chat-window">
+            <div class="global-header">
+                <div class="global-info" style="display: flex; align-items: center; gap: 0.8rem;">
+                    <img src="file:///C:/Users/parte/.gemini/antigravity/brain/c68c0256-afd6-4dd7-8005-2950d83b9ecb/media__1774020064129.png"
+                        class="logo-img" style="width: 35px; height: 35px;" alt="Logo">
+                    <h2 style="margin-bottom: 0;">Global Uni Hub</h2>
+                </div>
+                <a href="home.html" style="color: var(--text-main); font-size: 1.5rem;"><i class="fas fa-times"></i></a>
+            </div>
+
+            <div class="messages-container" id="global-messages">
+                <!-- Mock Broadcasts -->
+                <div class="message msg-admin">
+                    <strong><i class="fas fa-university"></i> CENTRAL ADMINISTRATION <span class="branch-tag">All
+                            Branches</span></strong>
+                    <p>Dear Students, the Semester exams start from April 15th. Please download your hall tickets from
+                        the portal.</p>
+                </div>
+
+                <div class="message msg-admin">
+                    <strong><i class="fas fa-award"></i> PLACEMENT CELL <span class="branch-tag">Pune
+                            Branch</span></strong>
+                    <p>Google and Microsoft have confirmed their visit for the upcoming placement drive. Registration
+                        opens Monday.</p>
+                </div>
+            </div>
+
+            <!-- Student View: Restricted -->
+            <div id="input-area" class="chat-input-area" style="display: none;">
+                <div class="input-wrapper">
+                    <input type="text" id="global-msg-input" placeholder="Type a common circular...">
+                </div>
+                <button class="broadcast-btn" style="display: flex;"><i class="fas fa-paper-plane"></i></button>
+            </div>
+
+            <div id="restricted-notice" class="broadcast-notice"
+                style="padding: 1.5rem; text-align: center; color: var(--text-dim); background: rgba(0,0,0,0.2);">
+                <i class="fas fa-lock" style="margin-right: 8px;"></i> Only Admin & Professors can broadcast to all
+                branches.
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Check role for Global Chat
+        const user = JSON.parse(localStorage.getItem('italk_user'));
+        if (user && (user.role === 'professor' || user.role === 'admin')) {
+            document.getElementById('input-area').style.display = 'flex';
+            document.getElementById('restricted-notice').style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>
