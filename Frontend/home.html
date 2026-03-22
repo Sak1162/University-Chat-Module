@@ -12,7 +12,7 @@
 <body class="app-body">
     <div class="floating-dots"></div>
     <div class="bg-graphic"></div>
-    
+
     <!-- Light Blue Glass UI Graphics -->
     <div class="glass-element circle-1"></div>
     <div class="glass-element circle-2"></div>
@@ -24,8 +24,7 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo-box">
-                    <img src="file:///C:/Users/parte/.gemini/antigravity/brain/c68c0256-afd6-4dd7-8005-2950d83b9ecb/media__1774020064129.png"
-                        alt="Logo" class="logo-img">
+                    <img src="italk-logo.png" alt="Logo" class="logo-img">
                     <span class="logo-text">ITALK</span>
                 </div>
                 <div class="header-actions">
@@ -51,7 +50,9 @@
             <div class="chat-list" id="chat-list">
                 <!-- Dummy Chat Items -->
                 <div class="chat-item">
-                    <div class="chat-avatar"><div class="chat-avatar-placeholder"><i class="fas fa-user-tie"></i></div></div>
+                    <div class="chat-avatar">
+                        <div class="chat-avatar-placeholder"><i class="fas fa-user-tie"></i></div>
+                    </div>
                     <div class="chat-meta">
                         <h4>Professor Sharma</h4>
                         <p>Don't forget the assignment.</p>
@@ -59,14 +60,18 @@
                     <span class="notification-badge">2</span>
                 </div>
                 <div class="chat-item">
-                    <div class="chat-avatar"><div class="chat-avatar-placeholder"><i class="fas fa-users"></i></div></div>
+                    <div class="chat-avatar">
+                        <div class="chat-avatar-placeholder"><i class="fas fa-users"></i></div>
+                    </div>
                     <div class="chat-meta">
                         <h4>Study Group - CS</h4>
                         <p>Are we meeting tomorrow?</p>
                     </div>
                 </div>
                 <div class="chat-item">
-                    <div class="chat-avatar"><div class="chat-avatar-placeholder"><i class="fas fa-bullhorn"></i></div></div>
+                    <div class="chat-avatar">
+                        <div class="chat-avatar-placeholder"><i class="fas fa-bullhorn"></i></div>
+                    </div>
                     <div class="chat-meta">
                         <h4>University Announcements</h4>
                         <p>Exam schedule released.</p>
@@ -164,8 +169,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="logo-box">
-                    <img src="file:///C:/Users/parte/.gemini/antigravity/brain/c68c0256-afd6-4dd7-8005-2950d83b9ecb/media__1774020064129.png"
-                        alt="Logo" class="logo-img">
+                    <img src="italk-logo.png" alt="Logo" class="logo-img">
                     <h2>User Profile</h2>
                 </div>
                 <span class="close-modal">&times;</span>
@@ -263,9 +267,12 @@
                 <h2 id="materials-title">Class Materials</h2>
                 <span class="close-modal">&times;</span>
             </div>
-            <div id="professor-upload-section" style="display: none; flex-direction: column; gap: 10px; margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                <input type="text" id="material-title" placeholder="Material Title (e.g., Chapter 1 Notes)" style="padding: 10px; border-radius: 4px; border: 1px solid #444; background: #222; color: #fff;">
-                <input type="url" id="material-url" placeholder="File Link (Drive / Image URL)" style="padding: 10px; border-radius: 4px; border: 1px solid #444; background: #222; color: #fff;">
+            <div id="professor-upload-section"
+                style="display: none; flex-direction: column; gap: 10px; margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                <input type="text" id="material-title" placeholder="Material Title (e.g., Chapter 1 Notes)"
+                    style="padding: 10px; border-radius: 4px; border: 1px solid #444; background: #222; color: #fff;">
+                <input type="url" id="material-url" placeholder="File Link (Drive / Image URL)"
+                    style="padding: 10px; border-radius: 4px; border: 1px solid #444; background: #222; color: #fff;">
                 <button class="btn-primary" id="upload-material-btn">Upload Material</button>
             </div>
             <div id="materials-list" class="class-list" style="display: flex; flex-direction: column; gap: 10px;">
