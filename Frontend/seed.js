@@ -1,5 +1,5 @@
 const mysql = require('C:/Users/parte/backend/node_modules/mysql2');
-const db = mysql.createConnection({ host: 'localhost', user: 'root', password: 'sak1162', database: 'italk_db' });
+const db = mysql.createConnection({host: 'localhost', user: 'root', password: 'sak1162', database: 'italk_db'});
 
 const sql1 = 'CREATE TABLE IF NOT EXISTS materials (id INT AUTO_INCREMENT PRIMARY KEY, subject_id INT, title VARCHAR(150), file_url TEXT, uploaded_by INT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);';
 

@@ -82,6 +82,83 @@ body {
     }
 }
 
+/* Glass Graphics Overlay */
+.glass-element {
+    position: absolute;
+    background: rgba(147, 197, 253, 0.08); /* Light blue transparent */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(191, 219, 254, 0.15);
+    z-index: 1; /* Below the main container */
+    pointer-events: none;
+    box-shadow: 0 8px 32px 0 rgba(147, 197, 253, 0.1);
+}
+
+.circle-1 {
+    width: 350px;
+    height: 350px;
+    border-radius: 50%;
+    top: -50px;
+    right: 10%;
+    animation: float 10s ease-in-out infinite;
+}
+
+.circle-2 {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    bottom: 5%;
+    left: 15%;
+    background: rgba(96, 165, 250, 0.05);
+    animation: float 14s ease-in-out infinite reverse;
+}
+
+.leaf-1 {
+    width: 220px;
+    height: 220px;
+    border-radius: 0 110px 0 110px;
+    bottom: -60px;
+    right: 20%;
+    transform: rotate(45deg);
+    background: rgba(147, 197, 253, 0.06);
+    animation: float-rotate 18s ease-in-out infinite;
+}
+
+.leaf-2 {
+    width: 150px;
+    height: 150px;
+    border-radius: 75px 0 75px 0;
+    top: 15%;
+    left: -40px;
+    transform: rotate(15deg);
+    animation: float-rotate-reverse 12s ease-in-out infinite;
+}
+
+.bubble-1 {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    top: 40%;
+    right: 5%;
+    background: rgba(191, 219, 254, 0.1);
+    animation: float 8s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-30px); }
+}
+
+@keyframes float-rotate {
+    0%, 100% { transform: translateY(0) rotate(45deg); }
+    50% { transform: translateY(-40px) rotate(60deg); }
+}
+
+@keyframes float-rotate-reverse {
+    0%, 100% { transform: translateY(0) rotate(15deg); }
+    50% { transform: translateY(-20px) rotate(0deg); }
+}
+
 /* Main Container */
 .auth-container {
     background: var(--glass-bg);
@@ -288,6 +365,8 @@ input:focus {
     height: 100vh;
     background: rgba(15, 23, 42, 0.4);
     backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 10;
 }
 
 /* Sidebar Styling */
@@ -414,6 +493,7 @@ input:focus {
     cursor: pointer;
     transition: var(--transition-fast);
     margin-bottom: 0.5rem;
+    position: relative;
 }
 
 .chat-item:hover {
@@ -582,6 +662,14 @@ input:focus {
     font-size: 0.95rem;
     line-height: 1.5;
     position: relative;
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    transform-origin: center bottom;
+    transition: box-shadow 0.3s ease;
+}
+
+@keyframes popIn {
+    0% { opacity: 0; transform: translateY(20px) scale(0.9); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .msg-sent {
@@ -589,13 +677,24 @@ input:focus {
     background: var(--primary);
     color: white;
     border-bottom-right-radius: 4px;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+.msg-sent:hover {
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
 }
 
 .msg-received {
     align-self: flex-start;
     background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
     border-bottom-left-radius: 4px;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.msg-received:hover {
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.1);
 }
 
 .msg-broadcast {
