@@ -63,9 +63,9 @@ app.post("/signup", async (req, res) => {
             }
             res.json({ message: "Signup successful" });
         });
-    } catch (e) { 
+    } catch (e) {
         console.error("Signup Server Error:", e);
-        res.status(500).json({ message: "Server error during encryption" }); 
+        res.status(500).json({ message: "Server error during encryption" });
     }
 });
 
@@ -77,7 +77,7 @@ app.post("/login", (req, res) => {
             return res.status(500).json({ message: "Database error during login" });
         }
         if (result.length === 0) return res.status(401).json({ message: "Invalid user: Account does not exist" });
-        
+
         const user = result[0];
         try {
             const isMatch = await bcrypt.compare(password, user.password);

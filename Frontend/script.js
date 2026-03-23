@@ -61,7 +61,7 @@ class ITALKApp {
                 });
                 const data = await res.json();
                 if (res.ok) { localStorage.setItem('italk_user', JSON.stringify(data.user)); window.location.href = 'home.html'; }
-                else alert(data.message);
+                else alert(data.message || "Login failed");
             };
         }
         const signupEl = document.getElementById('signup-form-element');
@@ -77,8 +77,9 @@ class ITALKApp {
                         password: document.getElementById('signup-password').value
                     })
                 });
+                const data = await res.json();
                 if (res.ok) { alert("Success! Please login."); document.getElementById('to-login').click(); }
-                else alert("Signup failed");
+                else alert(data.message || "Signup failed");
             };
         }
         const toSignup = document.getElementById('to-signup');
