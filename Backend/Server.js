@@ -33,12 +33,21 @@ const db = mysql.createPool({
     queueLimit: 0
 });
 
-// Test connection
+// Test connection and tables
 db.getConnection((err, connection) => {
-    if (err) console.log("Database connection failed:", err);
-    else {
+    if (err) {
+        console.error("CRITICAL: Database connection failed:", err.message);
+    } else {
         console.log("MySQL Connected to italk_db via Pool");
-        connection.release();
+        connection.query("SHOW TABLES LIKE 'users'", (err, results) => {
+            if (err) console.error("Error checking tables:", err.message);
+            else if (results.length === 0) {
+                console.warn("WARNING: 'users' table not found! Please run DATABASE.sql on your database.");
+            } else {
+                console.log("Database table 'users' verified.");
+            }
+            connection.release();
+        });
     }
 });
 
@@ -48,20 +57,36 @@ app.post("/signup", async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         db.query("INSERT INTO users (prn, password, full_name, role) VALUES (?, ?, ?, ?)", [prn, hashedPassword, full_name, role], (err) => {
-            if (err) return res.status(500).json({ message: "Signup failed" });
+            if (err) {
+                console.error("Signup Database Error:", err.message);
+                return res.status(500).json({ message: `Signup failed: ${err.code || 'Unknown Error'}` });
+            }
             res.json({ message: "Signup successful" });
         });
-    } catch (e) { res.status(500).json({ message: "Server error" }); }
+    } catch (e) { 
+        console.error("Signup Server Error:", e);
+        res.status(500).json({ message: "Server error during encryption" }); 
+    }
 });
 
 app.post("/login", (req, res) => {
     const { prn, password } = req.body;
     db.query("SELECT * FROM users WHERE prn=?", [prn], async (err, result) => {
-        if (err || result.length === 0) return res.status(401).json({ message: "Invalid user" });
+        if (err) {
+            console.error("Login Database Error:", err.message);
+            return res.status(500).json({ message: "Database error during login" });
+        }
+        if (result.length === 0) return res.status(401).json({ message: "Invalid user: Account does not exist" });
+        
         const user = result[0];
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (isMatch) res.json({ message: "Success", user: { id: user.id, name: user.full_name, role: user.role, class_code: user.class_code } });
-        else res.status(401).json({ message: "Invalid password" });
+        try {
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (isMatch) res.json({ message: "Success", user: { id: user.id, name: user.full_name, role: user.role, class_code: user.class_code } });
+            else res.status(401).json({ message: "Invalid password" });
+        } catch (e) {
+            console.error("Login Bcrypt Error:", e);
+            res.status(500).json({ message: "Server error during auth" });
+        }
     });
 });
 
