@@ -3,7 +3,11 @@
  * Academic & Placement Integration Phase
  */
 
-const API_BASE = "";
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? "http://localhost:5000"
+    : window.location.origin;
+
+console.log("ITALK App Initializing. API_BASE:", API_BASE);
 
 
 // --- Socket Service ---
@@ -33,7 +37,12 @@ class SocketService {
 // --- App Controller ---
 class ITALKApp {
     constructor() {
-        this.user = JSON.parse(localStorage.getItem('italk_user')) || null;
+        try {
+            this.user = JSON.parse(localStorage.getItem('italk_user')) || null;
+        } catch (e) {
+            console.error("Local storage error:", e);
+            this.user = null;
+        }
         this.socket = new SocketService();
         this.activeChatId = null;
         this.chats = [];
@@ -51,6 +60,7 @@ class ITALKApp {
     }
 
     initAuth() {
+        console.log("Entering Auth Init");
         const loginEl = document.getElementById('login-form-element');
         if (loginEl) {
             loginEl.onsubmit = async (e) => {
@@ -475,5 +485,10 @@ class ITALKApp {
         }
     }
 }
+
+window.onerror = function (msg, url, line) {
+    console.error(`GLOBAL ERROR: ${msg} at ${url}:${line}`);
+    alert("Application Error: Check console for details.");
+};
 
 const app = new ITALKApp();
