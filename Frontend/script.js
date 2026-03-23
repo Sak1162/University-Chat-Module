@@ -3,7 +3,8 @@
  * Academic & Placement Integration Phase
  */
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "";
+
 
 // --- Socket Service ---
 class SocketService {

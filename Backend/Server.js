@@ -3,6 +3,7 @@ const cors = require("cors");
 const mysql = require("mysql2");
 const bcrypt = require("bcryptjs");
 const http = require("http");
+const path = require("path");
 const { Server } = require("socket.io");
 
 const app = express();
@@ -13,6 +14,12 @@ const io = new Server(server, {
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "../Frontend")));
+
+// Serve index.html for the root route
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "../Frontend/index.html"));
+});
 
 // MySQL connection pool
 const db = mysql.createPool({
