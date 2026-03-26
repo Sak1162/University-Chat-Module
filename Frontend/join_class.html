@@ -155,16 +155,6 @@
             }
         }
 
-        document.getElementById('join-btn').onclick = () => {
-            const code = document.getElementById('class-code').value.trim();
-            if (code) {
-                alert(`Successfully joined class: ${code}`);
-                window.location.href = 'home.html';
-            } else {
-                alert('Please enter a valid class code or scan a QR code.');
-            }
-        };
-
         window.onload = initCamera;
     </script>
 </body>

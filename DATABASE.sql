@@ -1,13 +1,27 @@
 -- ITALK Database Schema
 
 -- 1. Users table (Ensure class_code exists)
+DROP TABLE IF EXISTS messages;
+DROP TABLE IF EXISTS materials;
+DROP TABLE IF EXISTS subjects;
+DROP TABLE IF EXISTS placements;
+DROP TABLE IF EXISTS classrooms;
+DROP TABLE IF EXISTS users;
+
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     prn VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     full_name VARCHAR(100) NOT NULL,
     role ENUM('student', 'professor') NOT NULL,
-    class_code VARCHAR(50) DEFAULT NULL
+    course VARCHAR(100) DEFAULT NULL,
+    year VARCHAR(20) DEFAULT NULL,
+    class_incharge VARCHAR(100) DEFAULT NULL,
+    class_code VARCHAR(50) DEFAULT NULL,
+    contact_number VARCHAR(20) DEFAULT NULL,
+    email VARCHAR(100) DEFAULT NULL,
+    profile_pic VARCHAR(512) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 2. Classrooms table

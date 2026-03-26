@@ -1,0 +1,23 @@
+{
+  "target_user": {
+    "id": 3,
+    "full_name": "Test",
+    "role": "student",
+    "class_code": null,
+    "prn": "1234567890"
+  },
+  "classrooms": [
+    {
+      "id": 1,
+      "name": "Software Testing",
+      "code": "1N16L3",
+      "professor_id": 25
+    },
+    {
+      "id": 2,
+      "name": "Class CS-101",
+      "code": "CS-101",
+      "professor_id": 1
+    }
+  ]
+}

@@ -48,42 +48,27 @@
             </div>
 
             <div class="chat-list" id="chat-list">
-                <!-- Dummy Chat Items -->
-                <div class="chat-item">
-                    <div class="chat-avatar">
-                        <div class="chat-avatar-placeholder"><i class="fas fa-user-tie"></i></div>
-                    </div>
+                <!-- Skeleton Loader (Visible while loading) -->
+                <div id="chat-skeleton" class="chat-item skeleton-loader">
+                    <div class="skeleton"></div>
                     <div class="chat-meta">
-                        <h4>Professor Sharma</h4>
-                        <p>Don't forget the assignment.</p>
-                    </div>
-                    <span class="notification-badge">2</span>
-                </div>
-                <div class="chat-item">
-                    <div class="chat-avatar">
-                        <div class="chat-avatar-placeholder"><i class="fas fa-users"></i></div>
-                    </div>
-                    <div class="chat-meta">
-                        <h4>Study Group - CS</h4>
-                        <p>Are we meeting tomorrow?</p>
+                        <div class="skeleton-text" style="width: 70%;"></div>
+                        <div class="skeleton-text" style="width: 40%; margin-top: 8px;"></div>
                     </div>
                 </div>
-                <div class="chat-item">
-                    <div class="chat-avatar">
-                        <div class="chat-avatar-placeholder"><i class="fas fa-bullhorn"></i></div>
-                    </div>
-                    <div class="chat-meta">
-                        <h4>University Announcements</h4>
-                        <p>Exam schedule released.</p>
-                    </div>
-                    <span class="notification-badge">5</span>
-                </div>
+                <!-- Chats will be injected here by script.js -->
             </div>
 
             <div class="sidebar-footer">
                 <div class="footer-row">
-                    <button class="footer-btn" id="join-class-btn" title="Join Class">
+                    <!-- Student specific Join Class button -->
+                    <button class="footer-btn student-only" id="join-class-btn" title="Join Class">
                         <i class="fas fa-plus-circle"></i>
+                    </button>
+                    <!-- Professor specific Create Class button -->
+                    <button class="footer-btn professor-only" id="create-class-btn" title="Create Class"
+                        style="display: none;">
+                        <i class="fas fa-plus-square"></i>
                     </button>
                     <button class="footer-btn" id="univ-chat-btn" title="Univ Chat">
                         <i class="fas fa-university"></i>
@@ -188,18 +173,18 @@
                 <div class="profile-info-grid">
                     <div class="info-item">
                         <label>Course</label>
-                        <p id="p-course">B.Tech - Computer Science</p>
+                        <p id="p-course" contenteditable="true" style="border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 2px;">B.Tech - Computer Science</p>
                     </div>
                     <div class="info-item">
                         <label>Year</label>
-                        <p id="p-year">3rd Year</p>
+                        <p id="p-year" contenteditable="true" style="border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 2px;">3rd Year</p>
                     </div>
                     <div class="info-item">
                         <label>Class Incharge</label>
-                        <p id="p-incharge">Prof. R. Deshmukh</p>
+                        <p id="p-incharge" contenteditable="true" style="border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 2px;">Prof. R. Deshmukh</p>
                     </div>
                     <div class="info-item">
-                        <label>Class Code</label>
+                        <label>Class Code (Read Only)</label>
                         <p id="p-code">CS-B3-2024</p>
                     </div>
                 </div>
@@ -302,6 +287,28 @@
                         <!-- Data injected here -->
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code / Class Code Modal -->
+    <div id="qr-modal" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <div class="modal-header">
+                <h2>Class Invitation</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div style="padding: 20px;">
+                <p style="margin-bottom: 20px; color: #aaa;">Share this code or QR with your students</p>
+                <div id="qrcode-container"
+                    style="background: white; padding: 15px; display: inline-block; border-radius: 10px; margin-bottom: 20px;">
+                    <!-- QR Image will be injected here -->
+                    <img id="qr-image" src="" alt="QR Code" style="display: none; width: 200px; height: 200px;">
+                </div>
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; font-size: 1.5rem; letter-spacing: 5px; color: #4da6ff; font-weight: bold;"
+                    id="display-class-code">
+                    XXXXXX
+                </div>
             </div>
         </div>
     </div>
