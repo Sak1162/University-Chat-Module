@@ -3,7 +3,7 @@
  * Academic & Placement Integration Phase
  */
 
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
     ? "http://localhost:5000"
     : window.location.origin;
 
@@ -65,31 +65,41 @@ class ITALKApp {
         if (loginEl) {
             loginEl.onsubmit = async (e) => {
                 e.preventDefault();
-                const res = await fetch(`${API_BASE}/login`, {
-                    method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ prn: document.getElementById('login-prn').value, password: document.getElementById('login-password').value })
-                });
-                const data = await res.json();
-                if (res.ok) { localStorage.setItem('italk_user', JSON.stringify(data.user)); window.location.href = 'home.html'; }
-                else alert(data.message || "Login failed");
+                try {
+                    const res = await fetch(`${API_BASE}/login`, {
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ prn: document.getElementById('login-prn').value, password: document.getElementById('login-password').value })
+                    });
+                    const data = await res.json();
+                    if (res.ok) { localStorage.setItem('italk_user', JSON.stringify(data.user)); window.location.href = 'home.html'; }
+                    else alert(data.message || "Login failed");
+                } catch (err) {
+                    console.error("Login Error:", err);
+                    alert("Could not connect to the server. Please ensure the backend is running at " + API_BASE);
+                }
             };
         }
         const signupEl = document.getElementById('signup-form-element');
         if (signupEl) {
             signupEl.onsubmit = async (e) => {
                 e.preventDefault();
-                const res = await fetch(`${API_BASE}/signup`, {
-                    method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        full_name: document.getElementById('signup-name').value,
-                        prn: document.getElementById('signup-prn').value,
-                        role: document.querySelector('input[name="role"]:checked').value,
-                        password: document.getElementById('signup-password').value
-                    })
-                });
-                const data = await res.json();
-                if (res.ok) { alert("Success! Please login."); document.getElementById('to-login').click(); }
-                else alert(data.message || "Signup failed");
+                try {
+                    const res = await fetch(`${API_BASE}/signup`, {
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            full_name: document.getElementById('signup-name').value,
+                            prn: document.getElementById('signup-prn').value,
+                            role: document.querySelector('input[name="role"]:checked').value,
+                            password: document.getElementById('signup-password').value
+                        })
+                    });
+                    const data = await res.json();
+                    if (res.ok) { alert("Success! Please login."); document.getElementById('to-login').click(); }
+                    else alert(data.message || "Signup failed");
+                } catch (err) {
+                    console.error("Signup Error:", err);
+                    alert("Could not connect to the server. Please ensure the backend is running.");
+                }
             };
         }
         const toSignup = document.getElementById('to-signup');
