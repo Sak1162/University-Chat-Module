@@ -60,8 +60,8 @@ app.post("/signup", async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         db.query("INSERT INTO users (prn, password, full_name, role) VALUES (?, ?, ?, ?)", [prn, hashedPassword, full_name, role], (err) => {
             if (err) {
-                console.error("Signup Database Error:", err.message);
-                return res.status(500).json({ message: `Signup failed: ${err.code || 'Unknown Error'}` });
+                console.error("Signup Database Error:", err.message, "| Code:", err.code);
+                return res.status(500).json({ message: `Signup failed: ${err.message || 'Unknown Error'}` });
             }
             res.json({ message: "Signup successful" });
         });
@@ -75,8 +75,8 @@ app.post("/login", (req, res) => {
     const { prn, password } = req.body;
     db.query("SELECT * FROM users WHERE prn=?", [prn], async (err, result) => {
         if (err) {
-            console.error("Login Database Error:", err.message);
-            return res.status(500).json({ message: "Database error during login" });
+            console.error("Login Database Error:", err.message, "| Code:", err.code);
+            return res.status(500).json({ message: "Database error during login: " + err.message });
         }
         if (result.length === 0) return res.status(401).json({ message: "Invalid user: Account does not exist" });
 
