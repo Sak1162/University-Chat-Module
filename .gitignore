@@ -9,6 +9,9 @@ Backend/.env
 db_status.json
 Backend/db_status.json
 Backend/db_target_check.json
+*.sql
+*.csv
+*.db
 
 # OS files
 .DS_Store
@@ -24,3 +27,18 @@ yarn-error.log*
 .env 
 Backend/.env 
 "MySQL_files/v3" 
+
+*.csv
+*.xls
+*.xlsx
+*.js.download
+*.map
+out-*
+*.svg
+v3/
+css2/
+
+.env
+config.js
+*.secret
+*.config
