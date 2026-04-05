@@ -17,10 +17,25 @@ db.connect();
 const status = {};
 
 db.query("SELECT id, full_name, role, class_code FROM users", (err, users) => {
+    if (err) {
+        console.error("Users query error:", err);
+        db.end();
+        return;
+    }
     status.users = users;
     db.query("SELECT * FROM classrooms", (err, classrooms) => {
+        if (err) {
+            console.error("Classrooms query error:", err);
+            db.end();
+            return;
+        }
         status.classrooms = classrooms;
         db.query("SELECT COUNT(*) as count, message_type, classroom_id FROM messages GROUP BY message_type, classroom_id", (err, msgs) => {
+            if (err) {
+                console.error("Messages query error:", err);
+                db.end();
+                return;
+            }
             status.messages_summary = msgs;
             fs.writeFileSync('db_status.json', JSON.stringify(status, null, 2));
             console.log("Status written to db_status.json");

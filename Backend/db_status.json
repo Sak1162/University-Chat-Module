@@ -14,9 +14,9 @@
     },
     {
       "id": 3,
-      "full_name": "Test",
+      "full_name": "Student",
       "role": "student",
-      "class_code": null
+      "class_code": "CS-101"
     },
     {
       "id": 5,
@@ -50,9 +50,9 @@
     },
     {
       "id": 25,
-      "full_name": "Prof. User 1",
+      "full_name": "Prof.Anindita",
       "role": "professor",
-      "class_code": null
+      "class_code": "1N16L3"
     },
     {
       "id": 26,
@@ -68,7 +68,7 @@
     },
     {
       "id": 28,
-      "full_name": "Student User 4",
+      "full_name": "Student",
       "role": "student",
       "class_code": "CS-101"
     },
@@ -76,7 +76,7 @@
       "id": 29,
       "full_name": "Student User 5",
       "role": "student",
-      "class_code": "CS-101"
+      "class_code": "1N16L3"
     },
     {
       "id": 30,
@@ -149,6 +149,18 @@
       "full_name": "Verify User",
       "role": "student",
       "class_code": null
+    },
+    {
+      "id": 46,
+      "full_name": "Test Agent",
+      "role": "student",
+      "class_code": null
+    },
+    {
+      "id": 51,
+      "full_name": "abcd",
+      "role": "student",
+      "class_code": null
     }
   ],
   "classrooms": [
@@ -157,11 +169,29 @@
       "name": "Software Testing",
       "code": "1N16L3",
       "professor_id": 25
+    },
+    {
+      "id": 2,
+      "name": "Class CS-101",
+      "code": "CS-101",
+      "professor_id": 1
+    },
+    {
+      "id": 3,
+      "name": "Cloud Computing",
+      "code": "G05F2G",
+      "professor_id": 25
+    },
+    {
+      "id": 4,
+      "name": "Full Stack",
+      "code": "DKHBWE",
+      "professor_id": 25
     }
   ],
   "messages_summary": [
     {
-      "count": 29,
+      "count": 41,
       "message_type": "private",
       "classroom_id": null
     },
@@ -171,9 +201,19 @@
       "classroom_id": null
     },
     {
-      "count": 1,
+      "count": 11,
       "message_type": "broadcast",
       "classroom_id": 1
+    },
+    {
+      "count": 9,
+      "message_type": "private",
+      "classroom_id": 1
+    },
+    {
+      "count": 4,
+      "message_type": "private",
+      "classroom_id": 2
     }
   ]
 }

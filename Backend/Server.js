@@ -42,13 +42,48 @@ db.getConnection((err, connection) => {
     } else {
         console.log("MySQL Connected to italk_db via Pool");
         connection.query("SHOW TABLES LIKE 'users'", (err, results) => {
-            if (err) console.error("Error checking tables:", err.message);
-            else if (results.length === 0) {
-                console.warn("WARNING: 'users' table not found! Please run DATABASE.sql on your database.");
-            } else {
-                console.log("Database table 'users' verified.");
+            if (err) {
+                console.error("Error checking tables:", err.message);
+                connection.release();
+                return;
             }
-            connection.release();
+            if (results.length === 0) {
+                console.warn("WARNING: 'users' table not found! Please run DATABASE.sql on your database.");
+                connection.release();
+                return;
+            }
+            
+            console.log("Database table 'users' verified.");
+            // 1. Ensure class_joined_at column exists
+            connection.query("ALTER TABLE users ADD COLUMN class_joined_at TIMESTAMP NULL", (err) => {
+                if (err && err.code !== 'ER_DUP_COLUMN_NAME' && err.errno !== 1060) {
+                    console.error("Error adding class_joined_at column:", err.message);
+                } else if (err) {
+                    console.log("Database column 'class_joined_at' verified.");
+                } else {
+                    console.log("Database column 'class_joined_at' added successfully.");
+                }
+
+                // 2. BACKFILL MIGRATION: Sync existing classrooms into subjects table
+                connection.query(`
+                    INSERT INTO subjects (user_id, name)
+                    SELECT professor_id, name FROM classrooms c
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM subjects s 
+                        WHERE s.user_id = c.professor_id AND s.name = c.name
+                    )
+                `, (err, result) => {
+                    if (err) console.error("Backfill Migration Error:", err.message);
+                    else if (result && result.affectedRows > 0) {
+                        console.log(`Backfill Migration: Synced ${result.affectedRows} classrooms to academic subjects.`);
+                    } else {
+                        console.log("Backfill Migration: All classrooms already synced with subjects.");
+                    }
+                    
+                    // Final Release
+                    connection.release();
+                });
+            });
         });
     }
 });
@@ -103,7 +138,11 @@ app.post("/create-class", (req, res) => {
             console.error("Create Class Error:", err.message);
             return res.status(500).json({ message: "Failed to create class" });
         }
-        res.json({ message: "Class created!", classId: result.insertId, code: code });
+        // Sync with academics: create a subject for this professor with the class name
+        db.query("INSERT INTO subjects (user_id, name) VALUES (?, ?)", [professorId, name], (err2) => {
+            if (err2) console.error("Sync Academic Error:", err2.message);
+            res.json({ message: "Class created!", classId: result.insertId, code: code });
+        });
     });
 });
 
@@ -114,9 +153,9 @@ app.post("/join-class", (req, res) => {
     db.query("SELECT * FROM classrooms WHERE UPPER(code) = ? OR UPPER(name) = ?", [normalizedInput, normalizedInput], (err, result) => {
         if (result && result.length > 0) {
             const classroom = result[0];
-            db.query("UPDATE users SET class_code = ? WHERE id = ?", [classroom.code, userId], (err) => {
+            db.query("UPDATE users SET class_code = ?, class_joined_at = CURRENT_TIMESTAMP WHERE id = ?", [classroom.code, userId], (err) => {
                 if (err) console.error("Join update error:", err);
-                console.log(`User ${userId} successfully updated with class_code ${classroom.code}`);
+                console.log(`User ${userId} successfully updated with class_code ${classroom.code} and join timestamp`);
                 res.json({ message: "Joined!", classroom: classroom });
             });
         } else {
@@ -230,6 +269,25 @@ app.get("/chats/:userId", (req, res) => {
     });
 });
 
+app.get("/classroom-students/:classCode", (req, res) => {
+    const classCode = req.params.classCode;
+    console.log(`Fetching students for class code: ${classCode}`);
+    const sqlFilter = "SELECT id, full_name as name, prn, class_joined_at as joined_at, profile_pic FROM users WHERE UPPER(class_code) = UPPER(?) AND role = 'student' ORDER BY class_joined_at DESC";
+    db.query(sqlFilter, [classCode], (err, results) => {
+        if (err) return res.status(500).json({ message: "Failed to fetch student list" });
+        if (results && results.length > 0) {
+            res.json(results);
+        } else {
+            // Fallback: show all existing students if the class list is empty
+            const sqlAll = "SELECT id, full_name as name, prn, created_at as joined_at, profile_pic FROM users WHERE role = 'student' LIMIT 20";
+            db.query(sqlAll, (err, allResults) => {
+                if (err) return res.status(500).json({ message: "Failed to fetch all students" });
+                res.json(allResults || []);
+            });
+        }
+    });
+});
+
 app.get("/messages/:chatId", (req, res) => {
     const chatId = parseInt(req.params.chatId);
     const { userId, type, classroomId } = req.query;
@@ -302,10 +360,54 @@ app.post("/update-profile", (req, res) => {
 
 // --- Academic & Placement APIs (NEW) ---
 
+app.get("/classroom-subject/:classId", (req, res) => {
+    const classId = req.params.classId;
+    const sql = `
+        SELECT s.id as subject_id FROM subjects s
+        JOIN classrooms c ON s.user_id = c.professor_id
+        WHERE c.id = ? AND s.name = c.name
+        LIMIT 1
+    `;
+    db.query(sql, [classId], (err, results) => {
+        if (err) return res.status(500).json({ message: "Error finding subject" });
+        if (results && results.length > 0) res.json(results[0]);
+        else res.status(404).json({ message: "Subject not found for this class" });
+    });
+});
+
 app.get("/subjects/:userId", (req, res) => {
-    db.query("SELECT * FROM subjects WHERE user_id = ?", [req.params.userId], (err, result) => {
-        if (err) return res.status(500).json({ message: "Error fetching subjects" });
-        res.json(result);
+    const userId = req.params.userId;
+    db.query("SELECT * FROM users WHERE id = ?", [userId], (err, userRes) => {
+        if (err || userRes.length === 0) return res.status(500).json({ message: "User not found" });
+        const user = userRes[0];
+
+        if (user.role === 'professor') {
+            const sql = `
+                SELECT s.*, c.code AS class_code 
+                FROM subjects s
+                LEFT JOIN classrooms c ON s.user_id = c.professor_id AND s.name = c.name
+                WHERE s.user_id = ?
+            `;
+            db.query(sql, [userId], (err, result) => {
+                if (err) return res.status(500).json({ message: "Error fetching subjects" });
+                res.json(result || []);
+            });
+        } else {
+            // Student: Get subjects from the classroom they joined
+            if (!user.class_code) return res.json([]);
+            
+            // Find the classroom's name and professor_id
+            const sql = `
+                SELECT s.*, c.code AS class_code 
+                FROM subjects s
+                JOIN classrooms c ON s.user_id = c.professor_id
+                WHERE c.code = ? AND s.name = c.name
+            `;
+            db.query(sql, [user.class_code], (err, result) => {
+                if (err) return res.status(500).json({ message: "Error fetching classroom subjects" });
+                res.json(result || []);
+            });
+        }
     });
 });
 
@@ -356,33 +458,67 @@ app.delete("/materials/:id", (req, res) => {
 });
 
 // --- Sockets ---
+const onlineUsers = new Map(); // userId -> socketId
+
 io.on("connection", (socket) => {
+    socket.on("user-online", (userId) => {
+        onlineUsers.set(String(userId), socket.id);
+        io.emit("update-online-users", Array.from(onlineUsers.keys()));
+        console.log(`User ${userId} is online (Socket: ${socket.id})`);
+    });
+
     socket.on("join-room", (room) => socket.join(room));
     
     socket.on("send-message", (data) => {
-        const { classroom_id, sender_id, receiver_id, message_text, message_type } = data;
+        const { classroom_id, sender_id, receiver_id, message_text, message_type, sender_name } = data;
         db.query("INSERT INTO messages (classroom_id, sender_id, receiver_id, message_text, message_type) VALUES (?, ?, ?, ?, ?)", [classroom_id, sender_id, receiver_id, message_text, message_type], (err, res) => {
             if (err) return;
-            // Routing:
-            // 1. If classroom_id is present, emit to the classroom room (Prof gets it here)
-            // 2. emit to receiver_id (Student gets it here if it's a DM from prof)
+            const payload = { ...data, id: res.insertId, sent_at: new Date() };
             if (classroom_id) {
-                io.to(`class_${classroom_id}`).emit("receive-message", { ...data, id: res.insertId, sent_at: new Date() });
+                io.to(`class_${classroom_id}`).emit("receive-message", payload);
             }
             if (receiver_id) {
-                io.to(`user_${receiver_id}`).emit("receive-message", { ...data, id: res.insertId, sent_at: new Date() });
+                io.to(`user_${receiver_id}`).emit("receive-message", payload);
             }
-            // Emit back to sender
-            socket.emit("receive-message", { ...data, id: res.insertId, sent_at: new Date() });
+            socket.emit("receive-message", payload);
         });
     });
 
     socket.on("broadcast", (data) => {
-        const { sender_id, classroom_id, message_text } = data;
+        const { sender_id, classroom_id, message_text, sender_name } = data;
         db.query("INSERT INTO messages (classroom_id, sender_id, message_text, message_type) VALUES (?, ?, ?, 'broadcast')", [classroom_id, sender_id, message_text], (err, res) => {
             if (err) return;
             io.to(`class_${classroom_id}`).emit("receive-message", { ...data, id: res.insertId, sent_at: new Date(), message_type: 'broadcast' });
         });
+    });
+
+    socket.on("typing", (data) => {
+        const { sender_id, receiver_id } = data;
+        if (receiver_id) {
+            io.to(`user_${receiver_id}`).emit("user-typing", { sender_id });
+        }
+    });
+
+    socket.on("stop-typing", (data) => {
+        const { sender_id, receiver_id } = data;
+        if (receiver_id) {
+            io.to(`user_${receiver_id}`).emit("user-stop-typing", { sender_id });
+        }
+    });
+
+    socket.on("disconnect", () => {
+        let disconnectedUserId = null;
+        for (const [userId, socketId] of onlineUsers.entries()) {
+            if (socketId === socket.id) {
+                disconnectedUserId = userId;
+                onlineUsers.delete(userId);
+                break;
+            }
+        }
+        if (disconnectedUserId) {
+            io.emit("update-online-users", Array.from(onlineUsers.keys()));
+            console.log(`User ${disconnectedUserId} went offline`);
+        }
     });
 });
 

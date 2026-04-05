@@ -17,10 +17,11 @@ class SocketService {
         this.callbacks = [];
     }
 
-    connect(user, chats) {
+    connect(user, chats, app) {
         if (typeof io === 'undefined') return;
         this.socket = io(API_BASE);
         this.socket.on("connect", () => {
+            this.socket.emit("user-online", user.id);
             this.socket.emit("join-room", `user_${user.id}`);
             chats.forEach(c => {
                 const room = (c.type === 'group' || c.type === 'global') ? `class_${c.id === 0 ? 'null' : c.id}` : (c.classroom_id ? `class_${c.classroom_id}` : null);
@@ -28,6 +29,19 @@ class SocketService {
             });
         });
         this.socket.on("receive-message", (msg) => this.callbacks.forEach(cb => cb(msg)));
+        this.socket.on("update-online-users", (userIds) => {
+            app.onlineUsers = new Set(userIds.map(String));
+            app.renderChatList();
+            app.updateActiveChatStatus();
+        });
+        this.socket.on("user-typing", (data) => {
+            app.typingUsers.add(String(data.sender_id));
+            app.updateActiveChatStatus();
+        });
+        this.socket.on("user-stop-typing", (data) => {
+            app.typingUsers.delete(String(data.sender_id));
+            app.updateActiveChatStatus();
+        });
     }
 
     send(eventName, data) { if (this.socket) this.socket.emit(eventName, data); }
@@ -52,6 +66,9 @@ class ITALKApp {
         this.activeRecipientId = null;
         this.activeRecipientName = null;
         this.searchResults = []; // Added for global user search
+        this.onlineUsers = new Set();
+        this.typingUsers = new Set();
+        this.typingTimeout = null;
 
         if (document.querySelector('.app-body')) {
             if (!this.user) window.location.href = 'index.html';
@@ -117,7 +134,7 @@ class ITALKApp {
         this.syncUserProfile();
         await this.loadChats();
         await this.loadAcademics();
-        this.socket.connect(this.user, this.chats);
+        this.socket.connect(this.user, this.chats, this);
         this.socket.onMessage((msg) => this.handleIncomingMessage(msg));
         this.renderChatList();
         this.renderAcademicUI();
@@ -162,11 +179,16 @@ class ITALKApp {
     async loadAcademics() {
         if (!this.user || !this.user.id) return;
         try {
-            const endpoint = this.user.role === 'professor' ? `/professor/classes/${this.user.id}` : `/subjects/${this.user.id}`;
-            const res = await fetch(`${API_BASE}${endpoint}`);
-            const data = await res.json();
-            if (this.user.role === 'professor') this.managedClasses = data;
-            else this.subjects = data;
+            // Professors need managedClasses for classroom list and subjects for academic materials
+            if (this.user.role === 'professor') {
+                const resClasses = await fetch(`${API_BASE}/professor/classes/${this.user.id}`);
+                this.managedClasses = await resClasses.json();
+            }
+            
+            // All users fetch subjects - Students get classroom-linked ones, Profs get their own
+            const resSubjects = await fetch(`${API_BASE}/subjects/${this.user.id}`);
+            this.subjects = await resSubjects.json();
+            
         } catch (e) { console.error("Academic load error", e); }
     }
 
@@ -180,48 +202,29 @@ class ITALKApp {
             title.innerText = "Managed Classes & Subjects";
             title.style.margin = "1rem 0";
             container.appendChild(title);
-            (this.managedClasses || []).forEach(cls => {
-                const item = document.createElement('div');
-                item.className = 'drawer-class-item';
-                item.innerHTML = `<h4>${cls.name}</h4><p>Code: ${cls.code}</p>`;
-                container.appendChild(item);
-            });
-
-            // Hardcoded subjects for common platform access
-            const subjectsList = [
-                { id: 1, name: 'Data Structures' },
-                { id: 2, name: 'Operating Systems' },
-                { id: 3, name: 'Computer Networks' },
-                { id: 4, name: 'Software Engineering' },
-                { id: 5, name: 'Database Systems' }
-            ];
-            subjectsList.forEach(s => {
+            
+            // Show dynamic subjects (includes auto-synced ones)
+            (this.subjects || []).forEach(s => {
                 const item = document.createElement('div');
                 item.className = 'drawer-class-item';
                 item.style.cursor = 'pointer';
-                item.innerHTML = `<h4><i class="fas fa-book"></i> ${s.name}</h4>`;
+                item.innerHTML = `<h4><i class="fas fa-book"></i> ${s.name} ${s.class_code ? `<span style="color:#4da6ff; font-size:0.8rem; margin-left:8px;">(${s.class_code})</span>` : ''}</h4>`;
                 item.onclick = () => this.openMaterials(s.id, s.name);
                 container.appendChild(item);
             });
 
         } else {
-            const subjectsList = [
-                { id: 1, name: 'Data Structures' },
-                { id: 2, name: 'Operating Systems' },
-                { id: 3, name: 'Computer Networks' },
-                { id: 4, name: 'Software Engineering' },
-                { id: 5, name: 'Database Systems' }
-            ];
-
             const title = document.createElement('h3');
             title.innerText = "Current Academic Subjects";
             title.style.margin = "1rem 0";
             container.appendChild(title);
-            subjectsList.forEach(s => {
+            
+            // Show dynamic subjects (includes auto-synced ones)
+            (this.subjects || []).forEach(s => {
                 const item = document.createElement('div');
                 item.className = 'drawer-class-item';
                 item.style.cursor = 'pointer';
-                item.innerHTML = `<h4><i class="fas fa-book"></i> ${s.name}</h4>`;
+                item.innerHTML = `<h4><i class="fas fa-book"></i> ${s.name} ${s.class_code ? `<span style="color:#4da6ff; font-size:0.8rem; margin-left:8px;">(${s.class_code})</span>` : ''}</h4>`;
                 item.onclick = () => this.openMaterials(s.id, s.name);
                 container.appendChild(item);
             });
@@ -334,10 +337,26 @@ class ITALKApp {
 
     handleIncomingMessage(msg) {
         let id;
-        if (msg.message_type === 'broadcast' || (msg.classroom_id === null && msg.receiver_id === null)) {
-            id = msg.classroom_id || 0; // Global Hub
+        if (msg.message_type === 'broadcast' && !msg.classroom_id) {
+            id = 0; // Global Hub (pure broadcast)
         } else if (msg.classroom_id) {
-            id = msg.classroom_id;
+            // Priority: Find the existing chat in this.chats that handles this classroom context.
+            // For Students: The teacher chat will have classroom_id set.
+            // For Professors: The classroom hub chat's id will equal msg.classroom_id.
+            const matchingChat = this.chats.find(c => 
+                (c.classroom_id == msg.classroom_id) || 
+                (c.type === 'group' && c.id == msg.classroom_id)
+            );
+            
+            if (matchingChat) {
+                id = matchingChat.id;
+            } else if (msg.message_type === 'broadcast') {
+                id = msg.classroom_id; 
+            } else {
+                // If it's a private message that doesn't match a loaded classroom chat,
+                // fall back to mapping by sender/receiver.
+                id = (msg.sender_id == this.user.id) ? msg.receiver_id : msg.sender_id;
+            }
         } else {
             id = (msg.sender_id == this.user.id) ? msg.receiver_id : msg.sender_id;
         }
@@ -403,6 +422,8 @@ class ITALKApp {
                               <div class="chat-avatar-placeholder" style="display:none;"><i class="fas fa-${icon}"></i></div>`;
             }
 
+            const isOnline = this.onlineUsers.has(String(chat.id));
+            
             item.innerHTML = `
                 <div class="chat-avatar ${this.activeChatId === chat.id ? 'avatar-highlight' : ''}">
                     ${avatarHtml}
@@ -410,6 +431,7 @@ class ITALKApp {
                 <div class="chat-meta">
                     <h4>${chat.name}</h4>
                     <p>${chat.lastMsg || (chat.type === 'group' ? 'Classroom Hub' : (chat.type === 'global' ? 'System Broadcasts' : 'Faculty Chat'))}</p>
+                    ${chat.type === 'private' ? `<span class="status-dot ${isOnline ? 'status-online' : 'status-offline'}"></span>` : ''}
                 </div>
                 ${chat.unread > 0 ? `<span class="notification-badge">${chat.unread}</span>` : ''}
             `;
@@ -461,6 +483,10 @@ class ITALKApp {
         this.activeRecipientId = null;
         this.activeRecipientName = null;
         chat.unread = 0;
+        
+        // Mobile UI handle
+        document.querySelector('.sidebar').classList.remove('open');
+
         document.querySelector('.empty-state').style.display = 'none';
         document.querySelector('.active-chat').style.display = 'flex';
         document.getElementById('active-chat-name').innerText = chat.name;
@@ -488,15 +514,70 @@ class ITALKApp {
         this.updateInputPlaceholder();
         this.renderMessages();
         this.renderChatList();
+        this.updateActiveChatStatus();
+    }
 
-        // If professor, show code/QR trigger in header maybe?
+    updateActiveChatStatus() {
+        if (!this.currentChat) return;
+        const chat = this.currentChat;
+        const statusEl = document.getElementById('active-chat-status');
         const broadcastBtn = document.getElementById('broadcast-btn');
-        if (this.user.role === 'professor' && chat.type === 'group') {
-            document.getElementById('active-chat-status').innerHTML = `Code: <span style="color:#4da6ff; cursor:pointer;" onclick="app.showClassQR('${chat.code}')">${chat.code}</span>`;
-            if (broadcastBtn) broadcastBtn.style.display = 'flex';
-        } else {
-            document.getElementById('active-chat-status').innerText = 'Online';
+        const viewStudentsBtn = document.getElementById('view-students-btn');
+        const chatMaterialsBtn = document.getElementById('chat-materials-btn');
+        
+        if (viewStudentsBtn) viewStudentsBtn.style.display = 'none'; // Default hidden
+        if (chatMaterialsBtn) chatMaterialsBtn.style.display = 'none';
+
+        if (chat.type === 'group' || chat.type === 'professor_classroom') {
+            // Classroom View
+            if (this.user.role === 'professor') {
+                statusEl.innerHTML = `Code: <span style="color:#4da6ff; cursor:pointer;" onclick="app.showClassQR('${chat.code}')">${chat.code}</span>`;
+                if (broadcastBtn) broadcastBtn.style.display = 'flex';
+                if (viewStudentsBtn) {
+                    viewStudentsBtn.style.display = 'flex';
+                    viewStudentsBtn.onclick = () => this.fetchClassroomStudents(chat.code, chat.name);
+                }
+            } else {
+                statusEl.innerText = 'Classroom Active';
+                statusEl.style.color = '#10b981';
+            }
+
+            // Both Students and Professors can see Materials in a classroom
+            if (chatMaterialsBtn) {
+                chatMaterialsBtn.style.display = 'flex';
+                chatMaterialsBtn.onclick = () => this.openClassroomMaterials(chat.id, chat.name);
+            }
+            
+        } else if (chat.type === 'private') {
+            const isTyping = this.typingUsers.has(String(chat.id));
+            const isOnline = this.onlineUsers.has(String(chat.id));
+            
+            if (isTyping) {
+                statusEl.innerHTML = '<span class="typing-indicator">is typing...</span>';
+            } else {
+                statusEl.innerText = isOnline ? 'Online' : 'Offline';
+                statusEl.style.color = isOnline ? '#10b981' : '#ef4444';
+            }
             if (broadcastBtn) broadcastBtn.style.display = 'none';
+        } else {
+            statusEl.innerText = 'Online'; // Hubs are always "online"
+            statusEl.style.color = '#10b981';
+            if (broadcastBtn) broadcastBtn.style.display = 'none';
+        }
+    }
+
+    async openClassroomMaterials(classId, className) {
+        try {
+            const res = await fetch(`${API_BASE}/classroom-subject/${classId}`);
+            const data = await res.json();
+            if (res.ok && data.subject_id) {
+                this.openMaterials(data.subject_id, className);
+            } else {
+                alert("This classroom does not have a materials folder yet.");
+            }
+        } catch (e) {
+            console.error("Error opening classroom materials:", e);
+            alert("Could not load class materials.");
         }
     }
 
@@ -556,6 +637,7 @@ class ITALKApp {
                 // Explicit Broadcast
                 msgData = {
                     sender_id: this.user.id,
+                    sender_name: this.user.name || this.user.full_name,
                     classroom_id: chat.id,
                     message_text: text,
                     message_type: 'broadcast'
@@ -565,6 +647,7 @@ class ITALKApp {
                 // Private Reply within a classroom
                 msgData = {
                     sender_id: this.user.id,
+                    sender_name: this.user.name || this.user.full_name,
                     receiver_id: this.activeRecipientId,
                     classroom_id: chat.id,
                     message_text: text,
@@ -575,6 +658,7 @@ class ITALKApp {
                 // Default to broadcast if in a group and no one selected (or optional: alert)
                 msgData = {
                     sender_id: this.user.id,
+                    sender_name: this.user.name || this.user.full_name,
                     classroom_id: chat.id,
                     message_text: text,
                     message_type: 'broadcast'
@@ -584,6 +668,7 @@ class ITALKApp {
                 // Normal private Chat (Faculty Chat)
                 msgData = {
                     sender_id: this.user.id,
+                    sender_name: this.user.name || this.user.full_name,
                     receiver_id: chat.id,
                     message_text: text,
                     message_type: 'private'
@@ -594,6 +679,7 @@ class ITALKApp {
             // Student sending to professor
             msgData = {
                 sender_id: this.user.id,
+                sender_name: this.user.name || this.user.full_name,
                 receiver_id: chat.id, // The Professor's ID
                 classroom_id: chat.classroom_id,
                 message_text: text,
@@ -624,7 +710,16 @@ class ITALKApp {
             };
         }
         if (document.getElementById('send-btn')) document.getElementById('send-btn').onclick = () => this.sendMessage();
-        if (document.getElementById('msg-input')) document.getElementById('msg-input').onkeypress = (e) => { if (e.key === 'Enter') this.sendMessage(); };
+        if (document.getElementById('msg-input')) {
+            const input = document.getElementById('msg-input');
+            input.onkeypress = (e) => { 
+                if (e.key === 'Enter') {
+                    this.sendMessage();
+                    this.stopTyping();
+                }
+            };
+            input.oninput = () => this.handleTyping();
+        }
 
         const createBtn = document.getElementById('create-class-btn');
         if (createBtn) createBtn.onclick = () => this.handleCreateClass();
@@ -653,6 +748,17 @@ class ITALKApp {
 
         if (document.getElementById('menu-trigger')) document.getElementById('menu-trigger').onclick = () => document.getElementById('side-drawer').classList.add('open');
         if (document.getElementById('close-drawer')) document.getElementById('close-drawer').onclick = () => document.getElementById('side-drawer').classList.remove('open');
+
+        // Mobile Sidebar Toggles
+        const mobileBack = document.getElementById('mobile-back');
+
+        if (mobileBack) {
+            mobileBack.onclick = () => {
+                // Return to chat list on mobile
+                document.querySelector('.sidebar').classList.add('open');
+                this.activeChatId = null;
+            };
+        }
 
         const openPlacementBtn = document.getElementById('open-placement-btn');
         if (openPlacementBtn) {
@@ -839,6 +945,35 @@ class ITALKApp {
         }
     }
 
+    handleTyping() {
+        if (!this.currentChat || this.currentChat.type !== 'private') return;
+        
+        // Emit typing event
+        this.socket.send("typing", {
+            sender_id: this.user.id,
+            receiver_id: this.currentChat.id
+        });
+
+        // Clear existing timeout
+        if (this.typingTimeout) clearTimeout(this.typingTimeout);
+
+        // Set timeout to stop typing
+        this.typingTimeout = setTimeout(() => {
+            this.stopTyping();
+        }, 3000);
+    }
+
+    stopTyping() {
+        if (!this.currentChat || this.currentChat.type !== 'private') return;
+        if (this.typingTimeout) clearTimeout(this.typingTimeout);
+        this.typingTimeout = null;
+        
+        this.socket.send("stop-typing", {
+            sender_id: this.user.id,
+            receiver_id: this.currentChat.id
+        });
+    }
+
     async handleCreateClass() {
         const name = prompt("Enter Classroom Name (e.g. Physics B3):");
         if (!name) return;
@@ -869,6 +1004,44 @@ class ITALKApp {
         qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${code}`;
         qrImg.onload = () => qrImg.style.display = 'block';
         document.getElementById('qr-modal').style.display = 'flex';
+    }
+
+    async fetchClassroomStudents(classCode, className) {
+        document.getElementById('students-modal-title').innerText = `Students in ${className}`;
+        document.getElementById('students-modal').style.display = 'flex';
+        const tbody = document.getElementById('students-tbody');
+        tbody.innerHTML = '<tr><td colspan="3" style="padding: 10px;">Loading...</td></tr>';
+
+        try {
+            const res = await fetch(`${API_BASE}/classroom-students/${classCode}`);
+            const students = await res.json();
+            tbody.innerHTML = '';
+
+            if (students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="padding: 10px; text-align: center; color: #aaa;">No students have joined yet.</td></tr>';
+                return;
+            }
+
+            students.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid #333';
+                const joinedAt = s.joined_at ? new Date(s.joined_at).toLocaleString() : 'N/A';
+                tr.innerHTML = `
+                    <td style="padding: 12px; display: flex; align-items: center; gap: 10px;">
+                        <div class="chat-avatar-placeholder" style="width: 30px; height: 30px; font-size: 0.8rem;">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        ${s.name}
+                    </td>
+                    <td style="padding: 12px;">${s.prn}</td>
+                    <td style="padding: 12px; color: #94a3b8; font-size: 0.9rem;">${joinedAt}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (e) {
+            console.error("Error fetching students:", e);
+            tbody.innerHTML = '<tr><td colspan="3" style="padding: 10px; color: #ef4444;">Error loading student list.</td></tr>';
+        }
     }
 }
 

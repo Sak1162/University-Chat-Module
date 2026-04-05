@@ -21,7 +21,7 @@
     <div class="glass-element bubble-1"></div>
     <div class="app-container">
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar open">
             <div class="sidebar-header">
                 <div class="logo-box">
                     <img src="italk-logo.png" alt="Logo" class="logo-img">
@@ -114,15 +114,22 @@
             <div class="active-chat" style="display: none;">
                 <div class="chat-header">
                     <div class="chat-info">
+                        <div class="back-btn" id="mobile-back">
+                            <i class="fas fa-arrow-left"></i>
+                        </div>
                         <div class="chat-avatar"></div>
                         <div class="chat-meta">
                             <h3 id="active-chat-name">Professor Sharma</h3>
-                            <span id="active-chat-status">Online</span>
+                            <span id="active-chat-status">Offline</span>
                         </div>
                     </div>
                     <div class="chat-actions">
-                        <i class="fas fa-phone"></i>
-                        <i class="fas fa-video"></i>
+                        <button id="view-students-btn" class="header-action-btn professor-only" title="View Students" style="display: none;">
+                            <i class="fas fa-user-friends"></i> Students
+                        </button>
+                        <button id="chat-materials-btn" class="header-action-btn" title="View Materials" style="display: none;">
+                            <i class="fas fa-book"></i> Materials
+                        </button>
                         <i class="fas fa-info-circle"></i>
                     </div>
                 </div>
@@ -309,6 +316,30 @@
                     id="display-class-code">
                     XXXXXX
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Classroom Students Modal -->
+    <div id="students-modal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 id="students-modal-title">Classroom Students</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div style="overflow-x: auto; margin-top: 15px;">
+                <table style="width: 100%; border-collapse: collapse; color: white;">
+                    <thead>
+                        <tr style="background: rgba(255,255,255,0.1);">
+                            <th style="padding: 12px; border-bottom: 1px solid #444; text-align: left;">Name</th>
+                            <th style="padding: 12px; border-bottom: 1px solid #444; text-align: left;">PRN</th>
+                            <th style="padding: 12px; border-bottom: 1px solid #444; text-align: left;">Joined At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="students-tbody">
+                        <!-- Data injected here -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
